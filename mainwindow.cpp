@@ -101,7 +101,8 @@ void MainWindow::deleteLine(QSqlQuery& query, int T_Id){
 }
 
 void MainWindow::Func2Click(TreeNode* Sender_ptr){
-    if (Actives.size()==0 || Sender_ptr!=Actives.top()){
+    if (Actives.size()==0 || Actives.top()!=Sender_ptr){
+        InfoEdit=nullptr;
         for (TreeNode* node_ptr : ViewedNodes){
             if (node_ptr!=Sender_ptr) delete node_ptr;
         }
@@ -112,7 +113,7 @@ void MainWindow::Func2Click(TreeNode* Sender_ptr){
         Sender_ptr->move(0.41*this->width(), 0.047*this->height());
         Sender_ptr->show();
         Sender_ptr->ActiveRect=Sender_ptr->DoubleClickTexture;
-        Sender_ptr->DefaultRect=&Sender_ptr->DoubleClickTexture;
+        Sender_ptr->DefaultRect=Sender_ptr->DoubleClickTexture;
         Sender_ptr->repaint();
         query->exec("SELECT * FROM Nodes;");
         int qsz=0;
@@ -134,6 +135,7 @@ void MainWindow::Func2Click(TreeNode* Sender_ptr){
         }
         UpdateNodesWidget();
     }else if (Actives.size()!=0 && Sender_ptr==Actives.top() && Actives.top()->getT_Id()!=0){
+        InfoEdit=nullptr;
         for (TreeNode* node_ptr : ViewedNodes){
             delete node_ptr;
         }
@@ -164,10 +166,9 @@ void MainWindow::Func2Click(TreeNode* Sender_ptr){
 
 void MainWindow::Func1Click(TreeNode* Sender_ptr){
     if (InfoEdit!=nullptr){
-        if (InfoEdit->DefaultRect)
-        InfoEdit->ActiveRect=*InfoEdit->DefaultRect;
-        InfoEdit->repaint();
-        InfoEdit=nullptr;
+            InfoEdit->ActiveRect=InfoEdit->DefaultRect;
+            InfoEdit->repaint();
+            InfoEdit=nullptr;
         if (T->isActive()) T->stop();
     }
     this->EditId->setText(QString::number(Sender_ptr->getId()));
@@ -202,6 +203,7 @@ void MainWindow::AddClick(){
         ND->move(15+(211+22)*(i%5), 31+(78+15)*(i/5));
         ND->repaint();
         ND->setHidden(false);
+        UpdateNodesWidget();
     }
 }
 
@@ -249,7 +251,7 @@ void MainWindow::FocusINAnyEdit(CleverEdit* Sender_ptr){
 void MainWindow::Tick(){
     if (!pokaz){
         if (InfoEdit!=nullptr){
-            InfoEdit->ActiveRect=*InfoEdit->DefaultRect;
+            InfoEdit->ActiveRect=InfoEdit->DefaultRect;
             InfoEdit->repaint();
             InfoEdit=nullptr;
         }
@@ -302,8 +304,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
 
     db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setHostName ("localhost");
     db.setDatabaseName("treeNodes.sqlite");
-
+    db.setUserName("Admin");
+    db.setPassword("Password");
     bool ope=db.open();
     QString Err=db.lastError().text();
     this->query = new QSqlQuery(db);
@@ -375,12 +379,15 @@ void MainWindow::UpdateNodesWidget(){
     for (int i=0; i<ViewedNodes.size(); i++){
         ViewedNodes[i]->setParent(ViewedNodesWidget);
         ViewedNodes[i]->move(15+(211+22)*(i%5), 31+(78+15)*(i/5));
+        ViewedNodes[i]->show();
         ViewedNodes[i]->setHidden(false);
+        ViewedNodes[i]->repaint();
     }
     if (ViewedNodes.size()==0)
-        ViewedNodesWidget->resize(ViewedNodesWidget->width(), 0);
+        ViewedNodesWidget->resize(ViewedNodesWidget->width(), SCROLL_AREA->height()-5);
     else
-        ViewedNodesWidget->resize(ViewedNodesWidget->width(), std::max(ViewedNodes[ViewedNodes.size()-1]->height()+ViewedNodes[ViewedNodes.size()-1]->y()+12, SCROLL_AREA->height()-10));
+        ViewedNodesWidget->resize(ViewedNodesWidget->width(), std::max(ViewedNodes[ViewedNodes.size()-1]->height()+ViewedNodes[ViewedNodes.size()-1]->y()+12, SCROLL_AREA->height()-5));
+    ViewedNodesWidget->repaint();
 }
 
 TreeNode* MainWindow::GetBySQL(QSqlQuery& query, int T_ID, QWidget* parent){

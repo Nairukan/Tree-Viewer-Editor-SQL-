@@ -32,7 +32,7 @@ public:
         delete T;
     }
 
-    QRect* DefaultRect=new QRect;
+    QRect DefaultRect;
 
     void UpdateFontSize();
 
@@ -56,7 +56,7 @@ public:
     void focusOutEvent(QFocusEvent *e){
         T->stop();
         kolPressFor300ms=0;
-        ActiveRect=*DefaultRect;
+        ActiveRect=DefaultRect;
         repaint();
     }
 

@@ -6,7 +6,7 @@ TreeNode::TreeNode(QWidget *parent, QImage AllTexture, QRect BaseTexture, QRect 
     connect(T, &QTimer::timeout, this, &TreeNode::NoTime);
     this->AllTexture=AllTexture;
     this->BaseTexture=BaseTexture;
-    *DefaultRect=BaseTexture;
+    DefaultRect=BaseTexture;
     this->ActiveRect=BaseTexture;
     this->OneClickTexture=OneClickTexture;
     this->DoubleClickTexture=DoubleClickTexture;
